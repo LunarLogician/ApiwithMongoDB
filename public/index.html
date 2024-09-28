@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            width: 90%;
+            display: block;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .student-list {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Student Management System</h1>
+
+    <!-- Form to Add a New Student -->
+    <form id="addStudentForm">
+        <h2>Add Student</h2>
+        <input type="text" id="addName" placeholder="Name" required>
+        <input type="email" id="addEmail" placeholder="Email" required>
+        <input type="number" id="addAge" placeholder="Age" required min="12">
+        <input type="text" id="addCourse" placeholder="Course" required>
+        <button type="submit">Add Student</button>
+    </form>
+
+    <!-- Form to Get a Student by Name -->
+    <form id="getStudentForm">
+        <h2>Get Student by Name</h2>
+        <input type="text" id="getName" placeholder="Name" required>
+        <button type="submit">Get Student</button>
+    </form>
+
+    <!-- Form to Update a Student by Name -->
+    <form id="updateStudentForm">
+        <h2>Update Student</h2>
+        <input type="text" id="updateName" placeholder="Name" required>
+        <input type="email" id="updateEmail" placeholder="New Email">
+        <input type="text" id="updateCourse" placeholder="New Course">
+        <button type="submit">Update Student</button>
+    </form>
+
+    <!-- Form to Delete a Student by Name -->
+    <form id="deleteStudentForm">
+        <h2>Delete Student</h2>
+        <input type="text" id="deleteName" placeholder="Name" required>
+        <button type="submit">Delete Student</button>
+    </form>
+
+    <!-- Button to Get All Students -->
+    <button id="getAllStudentsButton">Get All Students</button>
+    
+    <!-- Output Area -->
+    <div id="output"></div>
+    <div id="studentList" class="student-list"></div>
+
+    <script>
+        const outputDiv = document.getElementById('output');
+        const studentListDiv = document.getElementById('studentList');
+
+        // Function to display messages in the output area
+        function displayMessage(message) {
+            const messageElement = document.createElement('p');
+            messageElement.innerText = message;
+            outputDiv.appendChild(messageElement);
+        }
+
+        // Function to display list of students
+        function displayStudentList(students) {
+            studentListDiv.innerHTML = ''; // Clear previous list
+            if (students.length === 0) {
+                studentListDiv.innerText = 'No students found.';
+                return;
+            }
+
+            const list = document.createElement('ul');
+            students.forEach(student => {
+                const listItem = document.createElement('li');
+                listItem.innerText = `Name: ${student.name}, Email: ${student.email}, Age: ${student.age}, Course: ${student.course}`;
+                list.appendChild(listItem);
+            });
+            studentListDiv.appendChild(list);
+        }
+
+        // Add Student
+        document.getElementById('addStudentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('addName').value;
+            const email = document.getElementById('addEmail').value;
+            const age = document.getElementById('addAge').value;
+            const course = document.getElementById('addCourse').value;
+
+            const response = await fetch('/students', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email, age, course })
+            });
+
+            const message = await response.text();
+            displayMessage(message); // Show the response message
+            event.target.reset();
+        });
+
+        // Get Student by Name
+        document.getElementById('getStudentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('getName').value;
+
+            const response = await fetch(`/students/${name}`);
+            const studentData = await response.json();
+            
+            if (response.ok) {
+                displayStudentList([studentData]); // Show the fetched student data
+            } else {
+                displayMessage(studentData); // Show error message
+            }
+            event.target.reset();
+        });
+
+        // Update Student
+        document.getElementById('updateStudentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('updateName').value;
+            const email = document.getElementById('updateEmail').value;
+            const course = document.getElementById('updateCourse').value;
+
+            const response = await fetch(`/students/${name}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, course })
+            });
+
+            const message = await response.text();
+            displayMessage(message); // Show the response message
+            event.target.reset();
+        });
+
+        // Delete Student
+        document.getElementById('deleteStudentForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const name = document.getElementById('deleteName').value;
+
+            const response = await fetch(`/students/${name}`, {
+                method: 'DELETE'
+            });
+
+            const message = await response.text();
+            displayMessage(message); // Show the response message
+            event.target.reset();
+        });
+
+        // Get All Students
+        document.getElementById('getAllStudentsButton').addEventListener('click', async () => {
+            const response = await fetch('/students');
+            const students = await response.json();
+            displayStudentList(students); // Display all students
+        });
+    </script>
+
+</body>
+</html>
